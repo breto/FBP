@@ -14,7 +14,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6">
-                <div ng-show="saved">Saved!</div>{{saved}}
+                <div ng-show="saved">Saved!</div>
                 <div uib-alert ng-repeat="alert in errorsAndWarningsList" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">{{alert.message}}</div>
                 <form name="userForm" ng-submit="saveBracket()">
                     <div ng-show="!bracket.allGamesStarted">
@@ -193,6 +193,10 @@
                     $scope.viewmodel = response;
                     $scope.bracket = $scope.viewmodel.bracket;
                     $scope.playerScores = $scope.updatePlayerScores(week, league_id);
+                    $scope.hasErrors = false;
+                    $scope.hasWarnings = false;
+                    $scope.saved = null;
+                    $scope.errorsAndWarningsList = null;
                 });
             }
 
