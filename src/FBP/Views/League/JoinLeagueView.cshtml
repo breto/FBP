@@ -1,0 +1,50 @@
+@using Newtonsoft.Json
+@model FBP.ViewModels.FootballPoolViewModel
+
+@{
+    ViewData["Title"] = "Join League";
+}
+
+    <h2>Join League</h2>
+    <div ng-controller="LeagueCtrl">
+        <form asp-controller="League" asp-action="JoinLeague" method="post">
+            <table>
+                <tr>
+                    <th>League Name</th>
+                    <th>Password</th>
+                </tr>
+                <tr>
+                    <td><input type="text" name="leagueName" ng-model="leagueName"/></td>
+                    <td><input type="password" name="leaguePassword" ng-model="leaguePassword"/></td>
+                </tr>
+            </table>
+            <button type="submit">Join</button>
+        </form>
+    </div>
+
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+
+    <script type="text/javascript">
+        app.controller('LeagueCtrl', function ($scope, $http) {
+
+            $scope.joinLeague = function () {
+
+                $http.post('@Url.RouteUrl("JoinLeague")', $scope.bracket).success(function (response) {
+                    $scope.viewmodel = response;
+                    $scope.bracket = $scope.viewmodel.bracket;
+                    var l = $scope.viewmodel.errors;
+                    if(l.length == 0){
+                        $scope.saved = true;
+                    } else{
+                        $scope.saveError = true;
+                    }
+                });
+            };
+        });
+    </script>
+}

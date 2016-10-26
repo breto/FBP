@@ -1,0 +1,330 @@
+@using Newtonsoft.Json
+@model FBP.ViewModels.FootballPoolViewModel
+
+@{
+    ViewData["Title"] = "FBP";
+}
+<div ng-controller="PicksCtrl">
+
+<h2><i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getWeek(bracket.week - 1,bracket.league_id)"></i>
+     &nbsp; Week  &nbsp;
+    <select name="week_list_{{$index}}" ng-model="bracket.week" ng-options="i for i in gameWeights(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
+    <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < @Model.weeksInSeason" ng-click="getWeek(bracket.week + 1,bracket.league_id)"></i>
+</h2>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div ng-show="saved">Saved!</div>{{saved}}
+                <div uib-alert ng-repeat="alert in errorsAndWarningsList" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">{{alert.message}}</div>
+                <form name="userForm" ng-submit="saveBracket()">
+                    <div ng-show="!bracket.allGamesStarted">
+                        Weights - <span class="color-unused">Unused</span> <span class="color-used">Used</span> <span class="color-used-multi">Duplicate</span>
+                        <div ng-repeat="a in availableWeights">
+                            <span ng-model="a" ng-class="getWeightBoardClass(a, availableWeights.length)">{{a.score}}</span>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Score</th>
+                                <th>Visitor</th>
+                                <th></th>
+                                <th>Home</th>
+                                <th>Score</th>
+                                <th>Weight</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="p in bracket.picks">
+                            <td><span ng-class="getScoreCssClass(p, false)">{{p.matchup.visit_team_score | zeroOutScore}}</span></td>
+                            <td><img src="~/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.visitTeam}})" popover-trigger="'mouseenter'"  /><input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.status != 'P'" value="{{p.matchup.visit_team_id}}"/><span><strong>{{p.matchup.visitTeam.short_name}}</strong></span></td>
+                            <td title="{{p.matchup.game_date | date:'MM/dd/yyyy h:mma'}}"><span>vs</span></td>
+                            <td><img src="~/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.homeTeam}})" popover-trigger="'mouseenter'"/><strong>{{p.matchup.homeTeam.short_name}}</strong><input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.status != 'P'" value="{{p.matchup.home_team_id}}"/></td>
+                            <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
+                            <td ng-class="getWeightCssClass(p)">    
+                                <span ng-if="!bracket.allGamesStarted">
+                                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.status != 'P'" ng-change="getAvailableWeights()" ng-class="getWeightSelectClass(p.weight)" ></select>
+                                </span>
+                                <span ng-if="bracket.allGamesStarted" >
+                                    {{p.weight}}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                    <div ng-if="!bracket.allGamesStarted">
+                        <button class="btn btn-primary" type="submit">Save Picks</button> 
+                        <span ng-show="saved">Saved!</span>
+                        <span ng-show="hasErrors">Picks not saved. Errors at top.</span>
+                        <span ng-show="hasWarnings">Picks saved but with warnings. Warnings at top.</span>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Week Score</th>
+                            <th>Season Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="s in playerScores">
+                            <td>{{$index + 1}}</td>
+                            <td><a href="/get-week-for-player?week={{bracket.week}}&name={{s.userName}}&league_id={{bracket.league_id}}">{{s.userName}}</a></td>
+                            <td>{{s.weekScore}}</td>
+                            <td>{{s.seasonScore}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Comment</th>
+                        </tr>
+                        <tr ng-repeat="c in comments">
+                            <td>{{c.user_name}}</td>
+                            <td>{{c.comment}}</td>
+                        </tr>
+                    </thead>
+                </table>
+                <form name="commentForm">
+                    <textarea ng-model="commentToAdd" class="comment-textarea" ng-minlength="1" ng-maxlength="200"></textarea>
+                    <button class="btn btn-primary" ng-click="saveComment(bracket.league_id, showAllComments)">Add Comment</button>
+                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, showAllComments)">Refresh</button>
+                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, true)" ng-show="!showAllComments">Show All</button>
+                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, false)" ng-show="showAllComments">Show Recent</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        app.controller('PicksCtrl', function ($scope, $http, $interval, $window) {
+            $scope.viewmodel = @Html.Raw(JsonConvert.SerializeObject(Model));
+            $scope.bracket = @Html.Raw(JsonConvert.SerializeObject(Model.bracket));
+            $scope.errorsAndWarningsList = @Html.Raw(JsonConvert.SerializeObject(Model.errors));
+            $scope.comments = $scope.viewmodel.comments;
+            $scope.commentToAdd = null;
+            $scope.showAllComments = false;
+            $scope.hasErrors = false;
+            $scope.hasWarnings = false;
+            $scope.saved = null;
+
+            $scope.saveBracket = function () {
+
+                $http.post('@Url.RouteUrl("SaveBracket")', $scope.bracket).success(function (response) {
+                    $scope.viewmodel = response;
+                    $scope.bracket = $scope.viewmodel.bracket;
+                    var l = $scope.viewmodel.errors;
+                    if(l.length == 0){
+                        $scope.errorsAndWarningsList = $scope.viewmodel.errors;
+                        $scope.hasErrors = false;
+                        $scope.hasWarnings = false;
+                    } else{
+                        $scope.errorsAndWarningsList = $scope.viewmodel.errors;
+                        for(var i = 0; i < $scope.errorsAndWarningsList.length; i++){
+                            var e = $scope.errorsAndWarningsList[i];
+                            if("danger" == e.type){
+                                $scope.hasErrors = true;
+                            } else if("warning" == e.type){
+                                $scope.hasWarnings = true;
+                            }
+                        }
+                    }
+                    if($scope.hasErrors){
+                        $scope.saved = false;
+                    } else {
+                        $scope.saved = true;
+                    }
+                });
+            };
+
+            $scope.saveComment = function (league_id, show_all) {
+                if($scope.commentToAdd)
+                var c = new Object();
+                c.league_id = league_id;
+                c.comment = $scope.commentToAdd;
+                $http.post('@Url.RouteUrl("SaveComment")', c).success(function (response) {
+                    $scope.commentToAdd = null;
+                    $scope.comments =  $scope.getComments(league_id, show_all);
+                });
+            }
+
+            $scope.getComments = function(league_id, show_all) {
+                $http.get('/get-comments?league_id=' + league_id + '&show_all= ' + show_all).success(function(response){
+                    $scope.comments = response;
+                    $scope.showAllComments = show_all;
+                });
+            }
+
+            $scope.gameWeights = function(start, end) {
+                var result = [];
+                for (var i = start; i <= end; i++) {
+                    result.push(i);
+                }
+                return result;
+            };
+
+            $scope.weights = null;
+
+            $scope.updateGameScores = function() {
+                $http.get('@Html.Raw(@Url.RouteUrl("GetMatchupsAjax", new { week = Model.bracket.week}))').success(function (response) {
+                    var matchups = response;
+                    for(var i=0; i<matchups.length; i++){
+                        var matchup = matchups[i];
+                        for(var j=0; j<$scope.bracket.picks.length; j++){
+                            var pick = $scope.bracket.picks[j];
+                            if(pick.nfl_id == matchup.nfl_id){
+                                pick.matchup.visit_team_score = matchup.visit_team_score;
+                                pick.matchup.home_team_score = matchup.home_team_score;
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+
+            $scope.getWeek = function(week, league_id){
+                $http.get('/get-week-ajax?week=' + week + '&league_id=' + league_id).success(function(response){
+                    $scope.viewmodel = response;
+                    $scope.bracket = $scope.viewmodel.bracket;
+                    $scope.playerScores = $scope.updatePlayerScores(week, league_id);
+                });
+            }
+
+            $interval( function(){ $scope.updateGameScores(); $scope.updatePlayerScores($scope.bracket.week, $scope.bracket.league_id); $scope.updateComments(); }, 60000);
+
+            $scope.updateComments = function() {
+                $http.get('/get-comments?league_id=' + $scope.bracket.league_id + '&show_all= ' + $scope.showAllComments).success(function(response){
+                    $scope.comments = response;
+                });
+            }
+
+            $scope.updatePlayerScores = function(week, league_id) {
+                $http.get('/players-scores-ajax?week=' + week + '&league_id=' + league_id).success(function(response){
+                    $scope.playerScores = response;
+                });
+            }
+
+            $scope.playerScores = $scope.updatePlayerScores($scope.bracket.week, $scope.bracket.league_id);
+            $scope.availableWeights = [];
+
+            $scope.getAvailableWeights = function(){
+                var pickedWeights = [];
+                $scope.availableWeights = [];
+                for(var i=0; i < $scope.bracket.picks.length; i++){
+                    var pick = $scope.bracket.picks[i];
+                    pickedWeights.push(pick.weight);
+                    var aw = new Object();
+                    aw.score = i + 1;
+                    aw.unused = 1;
+                    $scope.availableWeights.push(aw);
+                }
+                for(var i=0; i < $scope.availableWeights.length; i++){
+                    for(var j=0; j<pickedWeights.length; j++){
+                        if($scope.availableWeights[i].score == pickedWeights[j]){
+                            if($scope.availableWeights[i].unused == 1){
+                                $scope.availableWeights[i].unused = 0;
+                            } else {
+                                $scope.availableWeights[i].unused = -1
+                            }
+                        }
+                    }
+                }
+                return $scope.availableWeights;
+            }
+
+            $scope.availableWeights = $scope.getAvailableWeights();
+
+            $scope.getWeightSelectClass = function(w){
+                var count = 0;
+                for(var i=0; i < $scope.bracket.picks.length; i++){
+                    if($scope.bracket.picks[i].weight == w){
+                        count++;
+                    }
+                }
+                if(count > 1){
+                    return "select-multi";
+
+                } else {
+                    return "selectpicker";
+                }
+            }
+
+            $scope.getWeightCssClass = function(p){
+                if(p.matchup.status=='F' || p.matchup.status=='FO') {
+                    if(p.winner_id == p.matchup.win_team_id){
+                        return 'weight-final-winner';
+                    } else {
+                        return 'weight-final-loser';
+                    }
+                } else {
+                    if(p.matchup.status == 'P'){
+                        return 'weight-pending';
+                    } else {
+                        return 'weight-active';
+                    }
+                }
+            }
+
+            $scope.getScoreCssClass = function(p, isHome){
+                console.log(p);
+                if(p.matchup.status=='F' || p.matchup.status=='FO') {
+                    if(isHome){
+                        if(p.matchup.home_team_id == p.matchup.win_team_id){
+                            return 'score-final-winner';
+                        } else {
+                            return 'score-final-loser';
+                        }
+                    } else {
+                        if(p.matchup.visit_team_id == p.matchup.win_team_id){
+                            return 'score-final-winner';
+                        } else {
+                            return 'score-final-loser';
+                        }
+                    }
+                } else {
+                    if(p.matchup.status == 'P'){
+                        return 'score-pending';
+                    } else {
+                        return 'score-active';
+                    }
+                }
+            }
+
+            $scope.getWeightBoardClass = function(a, l){
+                var r = a.unused == 1 ? 'weightboard-unused color-unused' : a.unused == 0 ? 'weightboard-used color-used' : 'weightboard-used-multi color-used-multi';
+                var w = l == 16 ? 'weightboard-width-16' : l == 15 ? 'weightboard-width-15' : l == 14 ? 'weightboard-width-14' : 'weightboard-width-16';
+                return r + ' ' + w;
+            }
+
+            $scope.getTeamRecordPopoverHtml = function(team){
+                return '<table class=\'table table-sm\'><tr><th>W</th><th>L</th></tr><tr><td><b>' + team.wins + '</b></td><td><b>' + team.losses + '</b></td></tr></table>';
+            }
+
+            $scope.getGameDatePopoverHtml = function(team){
+                return '<table class=\'table table-sm\'><tr><th>W</th><th>L</th></tr><tr><td><b>' + team.wins + '</b></td><td><b>' + team.losses + '</b></td></tr></table>';
+            }
+
+            $scope.closeAlert = function(index) {
+                $scope.errors.splice(index, 1);
+            };
+
+        }); // end PicksCtrl
+
+        app.filter('zeroOutScore', function(){
+            return function(input){
+                if(input < 0){
+                    return 0;
+                } else {
+                    return input;
+                }
+            }
+        });
+
+    </script>
+}

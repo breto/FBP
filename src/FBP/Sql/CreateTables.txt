@@ -1,0 +1,90 @@
+﻿create table team(
+id int auto_increment,
+name varchar(30),
+short_name varchar(3),
+city varchar(30),
+division_id int,
+primary key(id)
+);
+
+create table conference(
+id int,
+name varchar(3),
+primary key (id)
+);
+
+insert into conference values (1, 'AFC');
+
+insert into conference values (2, 'NFC');
+
+create table division(
+id int,
+name varchar(10),
+conference_id int,
+primary key (id)
+);
+
+insert into division values (1, 'NFC North', 2);
+
+insert into division values (2, 'NFC South', 2);
+
+insert into division values (3, 'NFC East', 2);
+
+insert into division values (4, 'NFC West', 2);
+
+insert into division values (5, 'AFC North', 1);
+
+insert into division values (6, 'AFC South', 1);
+
+insert into division values (7, 'AFC East', 1);
+
+insert into division values (8, 'AFC West', 1);
+
+create table matchups(
+id int identity,
+nfl_id int,
+week_number int,
+game_date datetime,
+status varchar(2),
+home_team_score int,
+visit_team_score int,
+win_team_id int,
+season varchar(4),
+home_team_id int,
+visit_team_id int,
+primary key (id)
+);
+
+create table picks(
+pick_id int identity,
+user_name varchar(100),
+nfl_id int,
+weight int,
+winner_id int,
+week int,
+league_id int,
+primary key (pick_id)
+);
+
+create table league(
+id int identity,
+name varchar(100),
+password varchar(100),
+primary key(id)
+)
+
+create table league_members(
+id int identity,
+league_id int,
+user_name varchar(100),
+primary key(id)
+)
+
+create table comments(
+id int identity,
+league_id int,
+user_name varchar(100),
+comment varchar(200),
+date_posted datetime,
+primary key(id)
+)

@@ -1,0 +1,21 @@
+﻿@using Newtonsoft.Json
+@model FBP.ViewModels.FootballPoolViewModel
+
+@{
+    ViewData["Title"] = "FBP - Admin";
+}
+
+<div>
+    <form action="/admin/exec" method="post">
+        <textarea name="sqlCommand"></textarea>
+        <button type="submit">Execute SQL</button>
+    </form>
+
+    <form action="/admin/execQuery" method="post">
+        <textarea name="sqlCommand"></textarea>
+        <button type="submit">Run query</button>
+    </form>
+
+
+
+</div>

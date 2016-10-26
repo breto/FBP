@@ -1,0 +1,63 @@
+﻿insert into team (city, division_id, name, short_name) values ('Chicago',1,'Bears','CHI');
+
+insert into team (city, division_id, name, short_name) values ('Detroit',1,'Lions','DET');
+
+insert into team (city, division_id, name, short_name) values ('Green Bay',1,'Packers','GB');
+
+insert into team (city, division_id, name, short_name) values ('Minnesota',1,'Vickings','MIN');
+
+insert into team (city, division_id, name, short_name) values ('Atlanta',2,'Falcons','ATL');
+
+insert into team (city, division_id, name, short_name) values ('Carolina',2,'Panthers','CAR');
+
+insert into team (city, division_id, name, short_name) values ('New Orleans',2,'Saints','NO');
+
+insert into team (city, division_id, name, short_name) values ('Tampa Bay',2,'Buccaneers','TB');
+
+insert into team (city, division_id, name, short_name) values ('Dallas',3,'Cowboys','DAL');
+
+insert into team (city, division_id, name, short_name) values ('New York',3,'Giants','NYG');
+
+insert into team (city, division_id, name, short_name) values ('Philadelphia',3,'Eagles','PHI');
+
+insert into team (city, division_id, name, short_name) values ('Washington',3,'Redskins','WAS');
+
+insert into team (city, division_id, name, short_name) values ('Arizona',4,'Cardinals','ARI');
+
+insert into team (city, division_id, name, short_name) values ('San Francisco',4,'49ers','SF');
+
+insert into team (city, division_id, name, short_name) values ('Seattle',4,'Seahawks','SEA');
+
+insert into team (city, division_id, name, short_name) values ('Los Angeles',4,'Rams','LA');
+
+insert into team (city, division_id, name, short_name) values ('Balitmore',5,'Ravens','BAL');
+
+insert into team (city, division_id, name, short_name) values ('Cincinnati',5,'Bengals','CIN');
+
+insert into team (city, division_id, name, short_name) values ('Cleveland',5,'Browns','CLE');
+
+insert into team (city, division_id, name, short_name) values ('Pittsburgh',5,'Steelers','PIT');
+
+insert into team (city, division_id, name, short_name) values ('Houston',6,'Texans','HOU');
+
+insert into team (city, division_id, name, short_name) values ('Indianapolis',6,'Colts','IND');
+
+insert into team (city, division_id, name, short_name) values ('Jacksonville',6,'Jaguars','JAX');
+
+insert into team (city, division_id, name, short_name) values ('Tennessee',6,'Titans','TEN');
+
+insert into team (city, division_id, name, short_name) values ('Buffalo',7,'Bills','BUF');
+
+insert into team (city, division_id, name, short_name) values ('Miami',7,'Dolphins','MIA');
+
+insert into team (city, division_id, name, short_name) values ('New England',7,'Patriots','NE');
+
+insert into team (city, division_id, name, short_name) values ('New York',7,'Jets','NYJ');
+
+insert into team (city, division_id, name, short_name) values ('Denver',8,'Broncos','DEN');
+
+insert into team (city, division_id, name, short_name) values ('Kansas City',8,'Chiefs','KC');
+
+insert into team (city, division_id, name, short_name) values ('Oakland',8,'Raiders','OAK');
+
+insert into team (city, division_id, name, short_name) values ('San Diego',8,'Chargers','SD');
