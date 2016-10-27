@@ -27,7 +27,7 @@ namespace FBP.Controllers
         {
             string userName = User.Identity.Name;
             FootballPoolViewModel vm = new FootballPoolViewModel();
-            List<Alert> errors = matchupService.joinLeague(leagueName, leaguePassword, userName);
+            List<Alert> errors = matchupService.joinLeague(leagueName ?? "", leaguePassword ?? "", userName ?? "");
             if (errors.ToList().Count == 0)
             {
                 return RedirectToAction("Index", "Home");

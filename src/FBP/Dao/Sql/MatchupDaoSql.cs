@@ -131,7 +131,10 @@ namespace FBP.Dao.Sql
         public League getLeagueByLeagueName(string name, SqlDataAccess db)
         {
             League l = db.GetFirst<League>("select * from league where name = @name", new { name });
-            l.members = getLeagueMembers(l.id, db);
+            if (l != null)
+            {
+                l.members = getLeagueMembers(l.id, db);
+            }
             return l;
         }
 
