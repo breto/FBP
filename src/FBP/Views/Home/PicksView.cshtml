@@ -49,8 +49,7 @@
 		                    <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
 		                    <td ng-class="getWeightCssClass(p)">    
 			                    <span ng-if="!bracket.allGamesStarted">
-				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()" ></select>
-                                    
+				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()" ng-class="getWeightSelectClass(p.weight)"></select>
 			                    </span>
 			                    <span ng-if="bracket.allGamesStarted" >
 				                    {{p.weight}}
@@ -342,14 +341,16 @@
                         angular.forEach(s.options, function(option, index, scope){
                             var optionValue = parseInt(option.label, 10);
                             if(option.label != '' && optionValue != NaN){
+                                var newClassList = [];
                                 if($scope.availableWeights[optionValue - 1].unused == 0){
-                                    option.classList.add("color-used");
+                                    newClassList.push("color-used");
                                 } else if($scope.availableWeights[optionValue - 1].unused == 1) {
-                                    option.classList.add("color-unused");
+                                    newClassList.push("color-unused");
                                 }
                                 else {
-                                    option.classList.add("color-used-multi");
+                                    newClassList.push("color-used-multi");
                                 }
+                                option.classList = newClassList;
                             }
                         });
                     }
