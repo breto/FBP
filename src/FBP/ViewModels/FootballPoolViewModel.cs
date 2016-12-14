@@ -13,7 +13,6 @@ namespace FBP.ViewModels
         public League userLeague { get; set; }
         public Bracket bracket { get; set; }
         public IEnumerable<Alert> errors { get; set; }
-        public string leagueName { get; set; }
         public int weeksInSeason { get; set; }
         public int currentWeek { get; set; }
         public IEnumerable<Comment> comments { get; set; }

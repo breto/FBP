@@ -13,6 +13,7 @@ using System.Net.Http;
 using System.Linq;
 using System.Threading.Tasks;
 using FBP.Utility;
+using System.Collections.ObjectModel;
 
 namespace FBP.Service.Impl
 {
@@ -25,17 +26,17 @@ namespace FBP.Service.Impl
             matchupDao = new MatchupDaoSql();
         }
 
-        public void saveBracket(Bracket bracket)
+        public void saveBracket(Bracket bracket, bool onlyPending)
         {
             List<Pick> picks = bracket.picks.ToList<Pick>();
             foreach (var p in picks)
             {
-                if ("P".Equals(p.matchup.status))
+                p.matchup = getMatchupByNflId(p.nfl_id);
+                if (!onlyPending || !p.matchup.game_has_started)
                 {
                     matchupDao.savePick(p, db);
                 }
             }
-            matchupDao.saveBracket(bracket, db);
         }
 
         public Bracket getUsersBracketByWeek(string user_name, string season, int week, int league_id)
@@ -64,8 +65,10 @@ namespace FBP.Service.Impl
         public bool hasFirstGameOfWeekStarted(string season, int week)
         {
             Matchup first = matchupDao.getFirstMatchupForWeek(season, week, db);
+
+            DateTime est = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             
-            if(first.game_date.CompareTo(DateTime.Now) < 1)
+            if (first.game_date.CompareTo(est) < 1)
             {
                 return true;
             } else
@@ -156,7 +159,7 @@ namespace FBP.Service.Impl
         {
             IEnumerable<string> leagueMemberNames = getLeagueMemberNames(league_id);
             List<UserScore> playerScores = new List<UserScore>();
-            leagueMemberNames.ToList<string>().ForEach(s => playerScores.Add(new UserScore(s, getPlayersWeekScore(season, week, s, league_id), getPlayersSeasonScore(season, s, league_id))));
+            leagueMemberNames.ToList<string>().ForEach(s => playerScores.Add(new UserScore(s, getPlayersWeekScore(season, week, s, league_id), getPlayersSeasonScore(season, s, league_id), week, league_id)));
             playerScores.Sort((x,y) => x.weekScore.CompareTo(y.weekScore));
             playerScores.Reverse();
             return playerScores;
@@ -225,7 +228,10 @@ namespace FBP.Service.Impl
         {
             return cache.Get("AllTeams", () => matchupDao.getAllTeams(db));
         }
-
+        public League getLeagueById(int id)
+        {
+            return matchupDao.getLeagueById(id, db);
+        }
         public League getLeagueByUserName(string name)
         {
             return matchupDao.getLeagueByUserName(name, db);
@@ -264,7 +270,7 @@ namespace FBP.Service.Impl
         
         public Matchup getMatchupByNflId(int nfl_id)
         {
-            return cache.Get("MatchupByNflId" + nfl_id, () => matchupDao.getMatchupByNflId(nfl_id, db));
+            return cache.Get("MatchupByNflId" + nfl_id, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => matchupDao.getMatchupByNflId(nfl_id, db));
         }
 
         public void saveMatchup(Matchup m)
@@ -302,11 +308,8 @@ namespace FBP.Service.Impl
         {
             HashSet<Alert> errors = new HashSet<Alert>();
             HashSet<int> weights = new HashSet<int>();
-            //if (matchupService.hasFirstGameOfWeekStarted(b.week))
-            //{
-            //    b.hasWeekStarted = false;
-            //    errors.Add(new Alert(Alert.DANGER_TYPE, "Picks cant be saved - week " + b.week + " has already started."));
-            //}
+            int maxWeight = b.picks.ToArray().Length;
+
             foreach (Pick p in b.picks)
             {
                 if (0 != p.weight && weights.Contains(p.weight))
@@ -318,9 +321,13 @@ namespace FBP.Service.Impl
                     weights.Add(p.weight);
                 }
                 p.matchup = getMatchupByNflId(p.nfl_id);
-                if (!"P".Equals(p.matchup.status))
+                if (p.matchup.game_has_started)
                 {
                     errors.Add(new Alert(Alert.WARNING_TYPE, p.matchup.homeTeam.short_name + " game cant be saved b/c it already started."));
+                }
+                if(p.weight > maxWeight)
+                {
+                    errors.Add(new Alert(Alert.DANGER_TYPE, "Invalid weight: " + p.weight));
                 }
             }
             return errors;

@@ -22,29 +22,22 @@ namespace FBP.Models
         public string season { get; set; }
         public int home_team_id { get; set; }
         public int visit_team_id { get; set; }
+        [Write(false)]
+        public bool game_has_started
+        {
+            get
+            {
+                DateTime est = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+                return (game_date != null && game_date.CompareTo(est) < 1) ? true : false;
+            }
+        }
 
         [Write(false)]
         public Team homeTeam { get; set; }
         [Write(false)]
         public Team visitTeam { get; set; }
 
-        public int getWinningTeamId()
-        {
-            int w = 0;
-            
-            if(home_team_score > visit_team_score)
-            {
-                w = home_team_id;
-            } else if(visit_team_score > home_team_score)
-            {
-                w = visit_team_id;
-            } else
-            {
-                w = TIE_INDICATOR;
-            }
-
-            return w;
-        }
+        
     }
 
     

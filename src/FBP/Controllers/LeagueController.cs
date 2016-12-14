@@ -19,7 +19,9 @@ namespace FBP.Controllers
         [HttpGet("league/index", Name = "Index")]
         public IActionResult Index()
         {
-            return View("JoinLeagueView");
+            FootballPoolViewModel vm = new FootballPoolViewModel();
+            vm.errors = new List<Alert>();
+            return View("JoinLeagueView", vm);
         }
 
         [HttpPost("league/joinLeague", Name = "JoinLeague")]

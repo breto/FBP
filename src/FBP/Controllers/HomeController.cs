@@ -47,6 +47,7 @@ namespace FBP.Controllers
             vm.teams = matchupService.getAllTeams();
             vm.currentWeek = matchupService.getCurrentWeek();
             vm.comments = matchupService.getCommentsRecent(vm.bracket.league_id, 10);
+            vm.userLeague = league;
             return View("PicksView", vm);
         }
 
@@ -56,7 +57,7 @@ namespace FBP.Controllers
             List<Alert> errors = matchupService.validateBracket(bracket).ToList();
             if(errors.Count == 0)
             {
-                matchupService.saveBracket(bracket);
+                matchupService.saveBracket(bracket, true);
             } else
             {
                 bool hasErrors = false;
@@ -70,7 +71,7 @@ namespace FBP.Controllers
                 }
                 if (!hasErrors)
                 {
-                    matchupService.saveBracket(bracket);
+                    matchupService.saveBracket(bracket, true);
                 }
             }
             FootballPoolViewModel vm = new FootballPoolViewModel();
@@ -139,7 +140,7 @@ namespace FBP.Controllers
             vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
             vm.teams = matchupService.getAllTeams();
             vm.currentWeek = matchupService.getCurrentWeek();
-            return View("PicksView", vm);
+            return View("CompetitorView", vm);
         }
 
         public IActionResult About()

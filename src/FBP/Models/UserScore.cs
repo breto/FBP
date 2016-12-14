@@ -8,6 +8,8 @@ namespace FBP.Models
     public class UserScore
     {
         public string userName { get; set; }
+        public int league_id { get; set; }
+        public int week { get; set; }
         public int weekScore { get; set; }
         public int seasonScore { get; set; }
 
@@ -16,11 +18,13 @@ namespace FBP.Models
 
         }
 
-        public UserScore(string userName, int weekScore, int seasonScore)
+        public UserScore(string userName, int weekScore, int seasonScore, int week, int league_id)
         {
             this.userName = userName;
             this.weekScore = weekScore;
             this.seasonScore = seasonScore;
+            this.week = week;
+            this.league_id = league_id;
         }
 
         public int CompareTo(UserScore u)

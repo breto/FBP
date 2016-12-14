@@ -216,12 +216,12 @@ namespace FBP.Dao.Sql
 
         public int getPlayersWeekScore(string season, int week, string userName, int league_id, SqlDataAccess db)
         {
-            return db.GetFirst<int>("select COALESCE(sum(weight),0) from picks p, matchups m where p.nfl_id = m.id and p.nfl_id in (select nfl_id from matchups where season = @season) and user_name = @userName and week = @week and p.winner_id = m.win_team_id and p.league_id = @league_id", new { season, userName, week, league_id });
+            return db.GetFirst<int>("select COALESCE(sum(weight),0) from picks p, matchups m where p.nfl_id = m.nfl_id and p.nfl_id in (select nfl_id from matchups where season = @season) and user_name = @userName and week = @week and p.winner_id = m.win_team_id and p.league_id = @league_id", new { season, userName, week, league_id });
         }
 
         public int getPlayersSeasonScore(string season, string userName, int league_id, SqlDataAccess db)
         {
-            return db.GetFirst<int>("select COALESCE(sum(weight),0) from picks p, matchups m where p.nfl_id = m.id and p.nfl_id in (select nfl_id from matchups where season = @season) and user_name = @userName and p.winner_id = m.win_team_id and p.league_id = @league_id", new { season, userName, league_id });
+            return db.GetFirst<int>("select COALESCE(sum(weight),0) from picks p, matchups m where p.nfl_id = m.nfl_id and p.nfl_id in (select nfl_id from matchups where season = @season) and user_name = @userName and p.winner_id = m.win_team_id and p.league_id = @league_id", new { season, userName, league_id });
         }
 
     }

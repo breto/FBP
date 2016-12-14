@@ -4,16 +4,16 @@
 @{
     ViewData["Title"] = "FBP";
 }
-<div ng-controller="PicksCtrl">
+<div ng-controller="PicksCtrl" ng-cloak>
 
 <h2><i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getWeek(bracket.week - 1,bracket.league_id)"></i>
      &nbsp; Week  &nbsp;
-    <select name="week_list_{{$index}}" ng-model="bracket.week" ng-options="i for i in gameWeights(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
+    <select name="weekSelect" ng-model="bracket.week" ng-options="i for i in gameWeights(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
     <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < @Model.weeksInSeason" ng-click="getWeek(bracket.week + 1,bracket.league_id)"></i>
 </h2>
     <div class="container">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div ng-show="saved">Saved!</div>
                 <div uib-alert ng-repeat="alert in errorsAndWarningsList" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">{{alert.message}}</div>
                 <form name="userForm" ng-submit="saveBracket()">
@@ -24,31 +24,39 @@
                         </div>
                     </div>
                     <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Score</th>
-                                <th>Visitor</th>
-                                <th></th>
-                                <th>Home</th>
-                                <th>Score</th>
-                                <th>Weight</th>
-                            </tr>
-                        </thead>
-                        <tr ng-repeat="p in bracket.picks">
-                            <td><span ng-class="getScoreCssClass(p, false)">{{p.matchup.visit_team_score | zeroOutScore}}</span></td>
-                            <td><img src="~/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.visitTeam}})" popover-trigger="'mouseenter'"  /><input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.status != 'P'" value="{{p.matchup.visit_team_id}}"/><span><strong>{{p.matchup.visitTeam.short_name}}</strong></span></td>
-                            <td> <span uib-popover-html="getGameDatePopoverHtml('{{p.matchup.game_date | date:'MM/dd/yyyy h:mma'}}')" popover-trigger="'mouseenter'">vs</span></td>
-                            <td><img src="~/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.homeTeam}})" popover-trigger="'mouseenter'"/><strong>{{p.matchup.homeTeam.short_name}}</strong><input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.status != 'P'" value="{{p.matchup.home_team_id}}"/></td>
-                            <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
-                            <td ng-class="getWeightCssClass(p)">    
-                                <span ng-if="!bracket.allGamesStarted">
-                                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.status != 'P'" ng-change="getAvailableWeights()" ng-class="getWeightSelectClass(p.weight)" ></select>
-                                </span>
-                                <span ng-if="bracket.allGamesStarted" >
-                                    {{p.weight}}
-                                </span>
-                            </td>
-                        </tr>
+	                    <thead>
+		                    <tr>
+			                    <th>Score</th>
+			                    <th>Visitor</th>
+			                    <th></th>
+			                    <th>Home</th>
+			                    <th>Score</th>
+			                    <th>Weight</th>
+		                    </tr>
+	                    </thead>
+	                    <tr ng-repeat="p in bracket.picks">
+		                    <td><span ng-class="getScoreCssClass(p, false)">{{p.matchup.visit_team_score | zeroOutScore}}</span></td>
+		                    <td>
+			                    <img src="~/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.visitTeam}})" popover-trigger="'mouseenter'" />
+			                    <input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.game_has_started" value="{{p.matchup.visit_team_id}}"/>
+			                    <span><strong>{{p.matchup.visitTeam.short_name}}</strong></span>
+		                    </td>
+		                    <td><span uib-popover-html="getGameDatePopoverHtml('{{p.matchup.game_date | date:'MM/dd/yyyy h:mma'}}')" popover-trigger="'mouseenter'">vs</span></td>
+		                    <td>
+			                    <img src="~/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.homeTeam}})" popover-trigger="'mouseenter'"/>
+			                    <strong>{{p.matchup.homeTeam.short_name}}</strong>
+			                    <input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.game_has_started" value="{{p.matchup.home_team_id}}"/></td>
+		                    <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
+		                    <td ng-class="getWeightCssClass(p)">    
+			                    <span ng-if="!bracket.allGamesStarted">
+				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()" ></select>
+                                    
+			                    </span>
+			                    <span ng-if="bracket.allGamesStarted" >
+				                    {{p.weight}}
+			                    </span>
+		                    </td>
+	                    </tr>
                     </table>
                     <div ng-if="!bracket.allGamesStarted">
                         <button class="btn btn-primary" type="submit">Save Picks</button> 
@@ -56,9 +64,10 @@
                         <span ng-show="hasErrors">Picks not saved. Errors at top.</span>
                         <span ng-show="hasWarnings">Picks saved but with warnings. Warnings at top.</span>
                     </div>
+                    <div></div>
                 </form>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <table class="table table-sm table-hover">
                     <thead>
                         <tr>
@@ -77,24 +86,26 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="col-md-4">
                 <table class="table table-sm table-hover">
                     <thead>
                         <tr>
                             <th>Player</th>
                             <th>Comment</th>
                         </tr>
+                    </thead>
                         <tr ng-repeat="c in comments">
                             <td>{{c.user_name}}</td>
                             <td>{{c.comment}}</td>
                         </tr>
-                    </thead>
                 </table>
                 <form name="commentForm">
                     <textarea ng-model="commentToAdd" class="comment-textarea" ng-minlength="1" ng-maxlength="200"></textarea>
                     <button class="btn btn-primary" ng-click="saveComment(bracket.league_id, showAllComments)">Add Comment</button>
                     <button class="btn btn-primary" ng-click="getComments(bracket.league_id, showAllComments)">Refresh</button>
-                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, true)" ng-show="!showAllComments">Show All</button>
-                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, false)" ng-show="showAllComments">Show Recent</button>
+                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, true)" ng-show="!showAllComments">All</button>
+                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, false)" ng-show="showAllComments">Recent</button>
                 </form>
             </div>
         </div>
@@ -250,7 +261,9 @@
                     if($scope.bracket.picks[i].weight == w){
                         count++;
                     }
+                    
                 }
+
                 if(count > 1){
                     return "select-multi";
 
@@ -267,7 +280,7 @@
                         return 'weight-final-loser';
                     }
                 } else {
-                    if(p.matchup.status == 'P'){
+                    if(!p.matchup.game_has_started){
                         return 'weight-pending';
                     } else {
                         return 'weight-active';
@@ -276,7 +289,6 @@
             }
 
             $scope.getScoreCssClass = function(p, isHome){
-                console.log(p);
                 if(p.matchup.status=='F' || p.matchup.status=='FO') {
                     if(isHome){
                         if(p.matchup.home_team_id == p.matchup.win_team_id){
@@ -292,7 +304,7 @@
                         }
                     }
                 } else {
-                    if(p.matchup.status == 'P'){
+                    if(!p.matchup.game_has_started){
                         return 'score-pending';
                     } else {
                         return 'score-active';
@@ -315,8 +327,46 @@
             }
 
             $scope.closeAlert = function(index) {
-                $scope.errors.splice(index, 1);
+                $scope.errorsAndWarningsList.splice(index, 1);
             };
+
+            $scope.setClassOnWeightSelectOptions = function(){
+                //iterates thru all the selects and then all the options on those selects and 
+                //compares them to the avaliableWeights list to set the css class on the options
+                //this is probably not a great way to do it, but yeah, it seems to work.
+                var allSelects = $("select");
+                angular.forEach(allSelects, function (newBracketPicks, index, scope) {
+                    var s = allSelects[index];
+                    var c = "";
+                    if(s.name.indexOf('weight_list_') > -1){
+                        angular.forEach(s.options, function(option, index, scope){
+                            var optionValue = parseInt(option.label, 10);
+                            if(option.label != '' && optionValue != NaN){
+                                if($scope.availableWeights[optionValue - 1].unused == 0){
+                                    option.classList.add("color-used");
+                                } else if($scope.availableWeights[optionValue - 1].unused == 1) {
+                                    option.classList.add("color-unused");
+                                }
+                                else {
+                                    option.classList.add("color-used-multi");
+                                }
+                            }
+                        });
+                    }
+                });
+            };
+
+            $scope.$watch(function (scope) {
+                return scope.bracket.picks;
+            }, function (newValue, scope) {
+                var allSelects = $("select");
+                $scope.setClassOnWeightSelectOptions();
+            }, true);
+
+            angular.element(document).ready(function () {
+                //runs when document is ready to set the css class on the weight select options
+                $scope.setClassOnWeightSelectOptions();
+            });
 
         }); // end PicksCtrl
 

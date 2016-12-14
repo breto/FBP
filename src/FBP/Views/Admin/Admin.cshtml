@@ -6,16 +6,26 @@
 }
 
 <div>
+    Run SQL
     <form action="/admin/exec" method="post">
         <textarea name="sqlCommand"></textarea>
         <button type="submit">Execute SQL</button>
     </form>
-
+    
+    <br/>
+    Run Query
     <form action="/admin/execQuery" method="post">
         <textarea name="sqlCommand"></textarea>
         <button type="submit">Run query</button>
     </form>
 
+    <br/>
 
+    Load Matchups
+    <form action="/admin/loadMatchups" method="post">
+        Season <input type="text" name="season" />&nbsp; 
+        Week <input type="text" name="week" />
+        <button type="submit">Load Matchup</button>
+    </form>
 
 </div>

@@ -19,9 +19,10 @@ namespace FBP.Service
         IEnumerable<Team> getAllTeams();
         Team getTeamByShortName(string shortName);
         Bracket getUsersBracketByWeek(string user_name, string season, int week, int league_id);
-        void saveBracket(Bracket bracket);
+        void saveBracket(Bracket bracket, bool onlyPending);
         bool hasFirstGameOfWeekStarted(string season, int week);
         bool haveAllGamesStarted(string season, int week);
+        League getLeagueById(int id);
         League getLeagueByUserName(string name);
         IEnumerable<string> getLeagueNames();
         List<Alert> joinLeague(string leagueName, string password, string userName);

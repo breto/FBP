@@ -33,5 +33,19 @@ namespace FBP.Controllers
             avm.results = matchupService.executeQuery(avm.sqlCommand);
             return View("Admin", avm);
         }
+
+        [HttpPost("admin/loadMatchups", Name = "LoadMatchups")]
+        public IActionResult loadMatchups(AdminViewModel avm)
+        {
+            if (avm.week <= 0)
+            {
+                matchupService.loadSeason(avm.season);
+            } else
+            {
+                matchupService.loadSchedule(avm.season, avm.week);
+            }
+            
+            return View("Admin");
+        }
     }
 }
