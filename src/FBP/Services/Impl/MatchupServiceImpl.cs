@@ -78,8 +78,7 @@ namespace FBP.Service.Impl
         }
         public IEnumerable<Pick> getBlankPicksForWeek(string user_name, int league_id, int week)
         {
-            //TODO: change to get currentweek
-            IEnumerable<Matchup> matchups = getMatchupsForWeek("2016", week);
+            IEnumerable<Matchup> matchups = getMatchupsForWeek(getCurrentSeason(), week);
             List<Pick> picks = new List<Pick>();
             matchups.ToList<Matchup>().ForEach(m => picks.Add(new Pick(user_name, league_id, m)));
             return picks;
@@ -100,6 +99,7 @@ namespace FBP.Service.Impl
             matchupDao.deleteSeason(season, db);
             for(int i=1; i<18; i++)
             {
+                System.Diagnostics.Debug.WriteLine("Loading " + i.ToString());
                 await loadSchedule(season, i);
             }
         }
@@ -113,40 +113,37 @@ namespace FBP.Service.Impl
             System.Diagnostics.Debug.WriteLine("http://www.nfl.com/ajax/scorestrip?seasonType=REG&season=" + season + "&week=" + week);
             doc.LoadXml(docString);
             XmlNodeList list = doc.GetElementsByTagName("g");
-            //using (var transactionScope = new TransactionScope())
-            //{
-                foreach (XmlNode gameNode in list)
-                {
+            foreach (XmlNode gameNode in list)
+            {
                     
-                    Matchup m = new Matchup();
-                    m.season = season;
-                    m.week_number = week;
+                Matchup m = new Matchup();
+                m.season = season;
+                m.week_number = week;
 
-                    XmlAttributeCollection xac = gameNode.Attributes;
-                    m.game_date = getDateTimeFromNflString(xac.GetNamedItem("eid").Value, xac.GetNamedItem("t").Value);
-                    m.home_team_id = getTeamByShortName(xac.GetNamedItem("h").Value).id;
-                    m.visit_team_id = getTeamByShortName(xac.GetNamedItem("v").Value).id;
-                    string n = xac.GetNamedItem("h").Value;
-                    m.visit_team_score = int.Parse(xac.GetNamedItem("vs").Value.Equals("") ? "-1" : xac.GetNamedItem("vs").Value);
-                    m.home_team_score = int.Parse(xac.GetNamedItem("hs").Value.Equals("") ? "-1" : xac.GetNamedItem("hs").Value);
-                    m.nfl_id = int.Parse(xac.GetNamedItem("eid").Value);
-                    m.status = xac.GetNamedItem("q").Value;
+                XmlAttributeCollection xac = gameNode.Attributes;
+                m.game_date = getDateTimeFromNflString(xac.GetNamedItem("eid").Value, xac.GetNamedItem("t").Value);
+                m.home_team_id = getTeamByShortName(xac.GetNamedItem("h").Value).id;
+                m.visit_team_id = getTeamByShortName(xac.GetNamedItem("v").Value).id;
+                string n = xac.GetNamedItem("h").Value;
+                m.visit_team_score = int.Parse(xac.GetNamedItem("vs").Value.Equals("") ? "-1" : xac.GetNamedItem("vs").Value);
+                m.home_team_score = int.Parse(xac.GetNamedItem("hs").Value.Equals("") ? "-1" : xac.GetNamedItem("hs").Value);
+                m.nfl_id = int.Parse(xac.GetNamedItem("eid").Value);
+                m.status = xac.GetNamedItem("q").Value;
 
-                    if (m.home_team_score > m.visit_team_score)
-                    {
-                        m.win_team_id = m.home_team_id;
-                    }
-                    else if (m.home_team_score < m.visit_team_score)
-                    {
-                        m.win_team_id = m.visit_team_id;
-                    }
-                    else
-                    {
-                        m.win_team_id = Matchup.TIE_INDICATOR;
-                    }
-                    matchupDao.saveMatchup(m, db);
-                //}
-                //transactionScope.Complete();
+                if (m.home_team_score > m.visit_team_score)
+                {
+                    m.win_team_id = m.home_team_id;
+                }
+                else if (m.home_team_score < m.visit_team_score)
+                {
+                    m.win_team_id = m.visit_team_id;
+                }
+                else
+                {
+                    m.win_team_id = Matchup.TIE_INDICATOR;
+                }
+                matchupDao.saveMatchup(m, db);
+                System.Diagnostics.Debug.WriteLine("Saved season" + m.season + " week" + m.week_number + " nfl id" + m.nfl_id);
             }
         }
 

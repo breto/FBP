@@ -115,7 +115,7 @@ namespace FBP.Dao.Sql
 
         public Matchup getFirstMatchupForWeek(string season, int week, SqlDataAccess db)
         {
-            return db.GetSingle<Matchup>("select * from matchups x where x.id = (select min(id) from matchups a where a.season = @season and a.week_number = @week and a.game_date = (select min(b.game_date) from matchups b where a.week_number = b.week_number))", new { season, week });
+            return db.GetSingle<Matchup>("select * from matchups x where x.id = (select min(id) from matchups a where a.season = @season and a.week_number = @week and a.game_date = (select min(b.game_date) from matchups b where a.week_number = b.week_number and a.season = b.season))", new { season, week });
         }
 
         public League getLeagueByUserName(string name, SqlDataAccess db)
