@@ -11,12 +11,10 @@ namespace FBP.Services.Impl
     public abstract class BaseService
     {
         protected IMemoryCache cache { get; set; }
-        protected SqlDataAccess db { get; set; }
-
+        
         protected BaseService(IOptions<AppSettings> appSettingsAccessor, IMemoryCache memoryCache)
         {
             cache = memoryCache;
-            db = new SqlDataAccess(appSettingsAccessor.Value.ConnectionStringFBP);
         }
     }
 }

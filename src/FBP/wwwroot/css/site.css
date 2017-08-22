@@ -205,4 +205,23 @@ left: -20px;
 top: 26px;
 }
 
+.modal-custom{
+    width: 400px;
+}
+.modal-top {
+    text-align: center;
+    font-weight: bold;
+}
+.modal-row-match {
+    background-color: lightgray;
+}
+
+.modal-row-nonmatch {
+    background-color: whitesmoke;
+}
+
+.btn-right {
+    float: right;
+}
+
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak { display: none !important; }

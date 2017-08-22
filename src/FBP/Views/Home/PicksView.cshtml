@@ -6,9 +6,9 @@
 }
 <div ng-controller="PicksCtrl" ng-cloak>
 
-<h2><i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getWeek(bracket.week - 1,bracket.league_id)"></i>
+<h2><i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getWeek(bracket.week - 1, bracket.league_id)"></i>
      &nbsp; Week  &nbsp;
-    <select name="weekSelect" ng-model="bracket.week" ng-options="i for i in gameWeights(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
+    <select name="weekSelect" ng-model="bracket.week" ng-options="i for i in getArrayOfInts(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
     <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < @Model.weeksInSeason" ng-click="getWeek(bracket.week + 1,bracket.league_id)"></i>
 </h2>
     <div class="container">
@@ -49,7 +49,7 @@
 		                    <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
 		                    <td ng-class="getWeightCssClass(p)">    
 			                    <span ng-if="!bracket.allGamesStarted">
-				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in gameWeights(1, bracket.picks.length)" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()" ng-click="setWeightSelectOptionCss($event)" ng-class="getWeightSelectClass(p.weight)"></select>
+				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in numberOfGames" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()"  ng-class="getWeightSelectClass(p.weight)"></select>
 			                    </span>
 			                    <span ng-if="bracket.allGamesStarted" >
 				                    {{p.weight}}
@@ -79,7 +79,8 @@
                     <tbody>
                         <tr ng-repeat="s in playerScores">
                             <td>{{$index + 1}}</td>
-                            <td><a href="/get-week-for-player?week={{bracket.week}}&name={{s.userName}}&league_id={{bracket.league_id}}">{{s.userName}}</a></td>
+                            <!--<td><a href="/get-week-for-player?week={{bracket.week}}&name={{s.userName}}&league_id={{bracket.league_id}}">{{s.userName}}</a></td>-->
+                            <td><div ng-click="openModal(bracket.week,s.userName,bracket.league_id)">{{s.userName}}</div></td>
                             <td>{{s.weekScore}}</td>
                             <td>{{s.seasonScore}}</td>
                         </tr>
@@ -113,7 +114,23 @@
 
 @section scripts{
     <script type="text/javascript">
-        app.controller('PicksCtrl', function ($scope, $http, $interval, $window) {
+        app.controller('PicksCtrl', function ($scope, $http, $interval, $window, $uibModal) {
+
+            $scope.getArrayOfInts = function (start, end) {
+                var result = [];
+                for (var i = start; i <= end; i++) {
+                    result.push(i);
+                }
+                $scope.testingNgOptions = $scope.testingNgOptions + 1;
+                return result;
+            };
+
+            $scope.getLeagueMembers = function (league_id) {
+                $http.get('/league-members-ajax?league_id=' + league_id).success(function (response) {
+                    $scope.leagueMembers = response;
+                });
+            }
+
             $scope.viewmodel = @Html.Raw(JsonConvert.SerializeObject(Model));
             $scope.bracket = @Html.Raw(JsonConvert.SerializeObject(Model.bracket));
             $scope.errorsAndWarningsList = @Html.Raw(JsonConvert.SerializeObject(Model.errors));
@@ -123,6 +140,85 @@
             $scope.hasErrors = false;
             $scope.hasWarnings = false;
             $scope.saved = null;
+            $scope.leagueMembers = $scope.getLeagueMembers($scope.bracket.league_id);
+            $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
+
+            $scope.modalContentTemplate = '<div class="modal-top">' +
+                '<select name="userSelect" ng-model="compBracket.user_name" ng-options="i for i in leagueMembers" ng-change="setCompBracket(compBracket.user_name, bracket.week + 1, bracket.league_id)" ></select>' +
+                '<button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button >' +
+                '</div > ' +
+                '<table class="table table-sm table-hover">' +
+                '    <thead>' +
+                '        <tr>' +
+                '            <th>Score</th>' +
+                '            <th>Visitor</th>' +
+                '            <th></th>' +
+                '            <th>Home</th>' +
+                '            <th>Score</th>' +
+                '            <th>Weight</th>' +
+                '        </tr>' +
+                '    </thead>' +
+                '    <tr ng-class="getModalRowClass(p.winner_id, bracket.picks[$index].winner_id, p.matchup.game_has_started)" ng-repeat="p in compBracket.picks">' +
+                '        <td><span ng-class="getScoreCssClass(p, false)">{{ p.matchup.visit_team_score | zeroOutScore }}</span></td>' +
+                '        <td>' +
+                '            <img src="/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" />' +
+                '               <div ng-if="p.matchup.game_has_started">' +
+                '               <input type="radio" ng-model="p.winner_id" ng-disabled="true" value="{{p.matchup.visit_team_id}}" />' +
+                '               </div>' +
+                '               <span><strong>{{ p.matchup.visitTeam.short_name }}</strong></span>' +
+                '       </td>' +
+                '            <td>vs</td>' +
+                '        <td>' +
+                '            <img src="/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" />' +
+                '            <strong>{{ p.matchup.homeTeam.short_name }}</strong>' +
+                '               <div ng-if="p.matchup.game_has_started">' +
+                '               <input type="radio" ng-model="p.winner_id" ng-disabled="true" value="{{p.matchup.home_team_id}}" /></td>' +
+                '           </div>' +
+                '        <td>' +
+                '           <div><span ng-class="getScoreCssClass(p, false)" > {{ p.matchup.home_team_score | zeroOutScore }}</span ></div>' +
+                '        </td > ' +
+                '        <td> ' +
+                '           <div ng-if="p.matchup.game_has_started" > {{p.weight}} </div>' +
+                '           <div ng-if="!p.matchup.game_has_started" > 0 </div>' +
+                '        </td > ' +
+                '    </tr>' +
+                '</table>'
+
+
+
+            $scope.openModal = function (week, userName, leagueId) {
+                $scope.compBracket = $scope.getBracket(userName, week, leagueId);
+                $scope.modalInstance = $uibModal.open({
+                    scope: $scope,
+                    template: $scope.modalContentTemplate,
+                    size: 'custom',
+                    controller: [
+                        '$scope', '$uibModalInstance', function ($scope, $uibModalInstance) {
+                            $scope.submitting = false;
+                            $scope.ok = function () {
+                                $uibModalInstance.dismiss('cancel');
+                            };
+
+                            $scope.clearParameterForm = function () {
+                            };
+
+                            $scope.setCompBracket = function (userName, week, leagueId) {
+                                $scope.$parent.compBracket = $scope.$parent.getBracket(userName, week, leagueId);
+                            }
+                        }
+                    ]
+                });
+
+            };
+
+            $scope.getModalRowClass = function(userScore, compScore, matchStarted){
+                if (matchStarted && (userScore == compScore)) {
+                    return "modal-row-match";
+                } else {
+                    return "modal-row-nonmatch";
+                }
+
+            }
 
             $scope.saveBracket = function () {
 
@@ -171,7 +267,7 @@
                 });
             }
 
-            $scope.gameWeights = function(start, end) {
+            $scope.getArrayOfInts = function(start, end) {
                 var result = [];
                 for (var i = start; i <= end; i++) {
                     result.push(i);
@@ -207,6 +303,15 @@
                     $scope.hasWarnings = false;
                     $scope.saved = null;
                     $scope.errorsAndWarningsList = null;
+                    $scope.availableWeights = $scope.getAvailableWeights();
+                    $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
+                    console.log("number of games" + $scope.numberOfGames);
+                });
+            }
+
+            $scope.getBracket = function (userName, week, leagueId) {
+                $http.get('/get-week-for-player?week=' + week + '&name=' + userName + '&league_id=' + leagueId).success(function (response) {
+                    $scope.compBracket = response;
                 });
             }
 
@@ -260,7 +365,7 @@
                     if($scope.bracket.picks[i].weight == w){
                         count++;
                     }
-                    
+
                 }
 
                 if(count > 1){
@@ -329,13 +434,8 @@
                 $scope.errorsAndWarningsList.splice(index, 1);
             };
 
-            $scope.setWeightSelectOptionCss = function (clickEvent){
-                var options = clickEventccurrentTarget.options;
-
-            };
-
             $scope.setClassOnWeightSelectOptions = function(){
-                //iterates thru all the selects and then all the options on those selects and 
+                //iterates thru all the selects and then all the options on those selects and
                 //compares them to the avaliableWeights list to set the css class on the options
                 //this is probably not a great way to do it, but yeah, it seems to work.
                 var allSelects = $("select");

@@ -88,3 +88,10 @@ comment varchar(200),
 date_posted datetime,
 primary key(id)
 )
+
+
+
+
+//ROLES
+insert into AspNetRoles values ('5af9d9af-224b-4f5c-b8b5-a38d12303fd6', 'af5ab917-ba4a-4469-99c2-2d507a796a9f', 'Admin', 'ADMIN')
+insert into AspNetUserRoles values (USER_ID,'5af9d9af-224b-4f5c-b8b5-a38d12303fd6')

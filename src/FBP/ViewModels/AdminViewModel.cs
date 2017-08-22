@@ -12,6 +12,8 @@ namespace FBP.ViewModels
         public string season { get; set; }
         public int week { get; set; }
         public IEnumerable<Object> results { get; set; }
+        public string leagueName { get; set; }
+        public string leaguePassword { get; set; }
 
     }
 }

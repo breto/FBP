@@ -37,8 +37,6 @@ namespace FBP.Service
         void saveComment(Comment comment);
         int getPlayersWeekScore(string season, int week, string userName, int league_id);
         int getPlayersSeasonScore(string season, string userName, int league_id);
-        int executeSQL(string sql);
-        IEnumerable<Object> executeQuery(string sql);
         IEnumerable<Alert> validateBracket(Bracket b);
     }
 }

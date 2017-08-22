@@ -19,11 +19,11 @@ namespace FBP.Service.Impl
 {
     public class MatchupServiceImpl : BaseService, IMatchupService
     {
-        public IMatchupDao matchupDao { get; set; }
+        public IFbpDao fbpDao { get; set; }
 
         public MatchupServiceImpl(IOptions<AppSettings> appSettingsAccessor, IMemoryCache memoryCache) : base(appSettingsAccessor, memoryCache)
         {
-            matchupDao = new MatchupDaoSql();
+            fbpDao = new FbpDaoSql(appSettingsAccessor);
         }
 
         public void saveBracket(Bracket bracket, bool onlyPending)
@@ -34,7 +34,7 @@ namespace FBP.Service.Impl
                 p.matchup = getMatchupByNflId(p.nfl_id);
                 if (!onlyPending || !p.matchup.game_has_started)
                 {
-                    matchupDao.savePick(p, db);
+                    fbpDao.savePick(p);
                 }
             }
         }
@@ -42,7 +42,7 @@ namespace FBP.Service.Impl
         public Bracket getUsersBracketByWeek(string user_name, string season, int week, int league_id)
         {
             Bracket bracket = new Bracket(user_name, week, league_id);
-            IEnumerable<Pick> picks = matchupDao.getUsersPicksByWeek(user_name, week, db);
+            IEnumerable<Pick> picks = fbpDao.getUsersPicksByWeek(user_name, week);
             List<Pick> pickList = picks.ToList<Pick>();
             if (pickList != null && pickList.Count != 0)
             {
@@ -58,13 +58,13 @@ namespace FBP.Service.Impl
 
         public bool haveAllGamesStarted(string season, int week)
         {
-            IEnumerable<Matchup> l = matchupDao.getMatchupsByWeekAndStatus(season, week, new string[] { "P" }, db);
+            IEnumerable<Matchup> l = fbpDao.getMatchupsByWeekAndStatus(season, week, new string[] { "P" });
             return l == null || l.Count() == 0;
         }
 
         public bool hasFirstGameOfWeekStarted(string season, int week)
         {
-            Matchup first = matchupDao.getFirstMatchupForWeek(season, week, db);
+            Matchup first = fbpDao.getFirstMatchupForWeek(season, week);
 
             DateTime est = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
             
@@ -86,17 +86,17 @@ namespace FBP.Service.Impl
 
         public IEnumerable<Matchup> getMatchupsForWeek(string season, int week)
         {
-            return cache.Get("MatchupsForWeek" + season + week, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => matchupDao.getMatchupsForWeek(season, week, db));
+            return cache.Get("MatchupsForWeek" + season + week, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => fbpDao.getMatchupsForWeek(season, week));
         }
 
         public int getNumberOfWeeksInSeason(string season)
         {
-            return cache.Get("GamesInSeason", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(50)), () => matchupDao.getNumberOfWeeksInSeason(season, db));
+            return cache.Get("GamesInSeason", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(50)), () => fbpDao.getNumberOfWeeksInSeason(season));
         }
 
         public async void loadSeason(string season)
         {
-            matchupDao.deleteSeason(season, db);
+            fbpDao.deleteSeason(season);
             for(int i=1; i<18; i++)
             {
                 System.Diagnostics.Debug.WriteLine("Loading " + i.ToString());
@@ -142,14 +142,14 @@ namespace FBP.Service.Impl
                 {
                     m.win_team_id = Matchup.TIE_INDICATOR;
                 }
-                matchupDao.saveMatchup(m, db);
+                fbpDao.saveMatchup(m);
                 System.Diagnostics.Debug.WriteLine("Saved season" + m.season + " week" + m.week_number + " nfl id" + m.nfl_id);
             }
         }
 
         public IEnumerable<string> getLeagueMemberNames(int league_id)
         {
-            return matchupDao.getLeagueMemberNames(league_id, db);
+            return fbpDao.getLeagueMemberNames(league_id);
         }
 
         public IEnumerable<UserScore> getLeaguePlayersScores(int league_id, string season, int week)
@@ -164,12 +164,12 @@ namespace FBP.Service.Impl
 
         public int getPlayersWeekScore(string season, int week, string userName, int league_id)
         {
-            return matchupDao.getPlayersWeekScore(season, week, userName, league_id, db);
+            return fbpDao.getPlayersWeekScore(season, week, userName, league_id);
         }
 
         public int getPlayersSeasonScore(string season, string userName, int league_id)
         {
-            return matchupDao.getPlayersSeasonScore(season, userName, league_id, db);
+            return fbpDao.getPlayersSeasonScore(season, userName, league_id);
         }
 
         public void updateMatchups(string season, int week)
@@ -187,18 +187,18 @@ namespace FBP.Service.Impl
 
         public string getCurrentSeason()
         {
-            return cache.Get("CurrentSeason", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(50)), () => matchupDao.getCurrentSeason(db));
+            return cache.Get("CurrentSeason", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromDays(50)), () => fbpDao.getCurrentSeason());
         }
 
         public bool isWeekStillActive(int week)
         {
-            IEnumerable<Matchup> l = cache.Get("WeekStillActive" + week, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => matchupDao.getActiveMatchups(week, db));
+            IEnumerable<Matchup> l = cache.Get("WeekStillActive" + week, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => fbpDao.getActiveMatchups(week));
             return (l == null || !l.Any()) ? false : true;
         }
 
         public Team getTeamByShortName(string shortName)
         {
-            return matchupDao.getTeamByShortName(shortName, db);
+            return fbpDao.getTeamByShortName(shortName);
         }
 
         public DateTime getDateTimeFromNflString(string date, string time)
@@ -218,30 +218,30 @@ namespace FBP.Service.Impl
 
         public Team getTeamById(int id)
         {
-            return cache.Get("TeamById" + id, () => matchupDao.getTeamById(id, db));
+            return cache.Get("TeamById" + id, () => fbpDao.getTeamById(id));
         }
 
         public IEnumerable<Team> getAllTeams()
         {
-            return cache.Get("AllTeams", () => matchupDao.getAllTeams(db));
+            return cache.Get("AllTeams", () => fbpDao.getAllTeams());
         }
         public League getLeagueById(int id)
         {
-            return matchupDao.getLeagueById(id, db);
+            return fbpDao.getLeagueById(id);
         }
         public League getLeagueByUserName(string name)
         {
-            return matchupDao.getLeagueByUserName(name, db);
+            return fbpDao.getLeagueByUserName(name);
         }
 
         public IEnumerable<string> getLeagueNames()
         {
-            return matchupDao.getLeagueNames(db);
+            return fbpDao.getLeagueNames();
         }
 
         public List<Alert> joinLeague(string leagueName, string password, string userName)
         {
-            League l = matchupDao.getLeagueByLeagueName(leagueName, db) ;
+            League l = fbpDao.getLeagueByLeagueName(leagueName) ;
             List<Alert> errors = new List<Alert>();
             if(l != null)
             {
@@ -251,7 +251,7 @@ namespace FBP.Service.Impl
                 }
                 else
                 {
-                    matchupDao.joinLeague(leagueName, userName, db);
+                    fbpDao.joinLeague(leagueName, userName);
                 }
             } else
             {
@@ -262,21 +262,21 @@ namespace FBP.Service.Impl
 
         public int getCurrentWeek()
         {
-            return cache.Get("CurrentWeek", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10)), () => matchupDao.getCurrentWeek(db));
+            return cache.Get("CurrentWeek", new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10)), () => fbpDao.getCurrentWeek());
         }
         
         public Matchup getMatchupByNflId(int nfl_id)
         {
-            return cache.Get("MatchupByNflId" + nfl_id, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => matchupDao.getMatchupByNflId(nfl_id, db));
+            return cache.Get("MatchupByNflId" + nfl_id, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1)), () => fbpDao.getMatchupByNflId(nfl_id));
         }
 
         public void saveMatchup(Matchup m)
         {
-            matchupDao.saveMatchup(m, db);
+            fbpDao.saveMatchup(m);
         }
 
         public IEnumerable<Comment> getCommentsAll(int league_id) {
-            return matchupDao.getCommentsAll(league_id, db);
+            return fbpDao.getCommentsAll(league_id);
         }
         public IEnumerable<Comment> getCommentsRecent(int league_id, int numberToRetrieve)
         {
@@ -284,23 +284,13 @@ namespace FBP.Service.Impl
             {
                 numberToRetrieve = 10;
             }
-            return matchupDao.getCommentsRecent(league_id, numberToRetrieve, db);
+            return fbpDao.getCommentsRecent(league_id, numberToRetrieve);
         }
         public void saveComment(Comment comment)
         {
-            matchupDao.saveComment(comment, db);
+            fbpDao.saveComment(comment);
         }
-        public int executeSQL(string sql)
-        {
-            //todo check authorized
-            return db.Execute(sql, new { });
-        }
-
-        public IEnumerable<Object> executeQuery(string sql)
-        {
-            return db.GetList<Object>(sql);
-        }
-
+        
         public IEnumerable<Alert> validateBracket(Bracket b)
         {
             HashSet<Alert> errors = new HashSet<Alert>();

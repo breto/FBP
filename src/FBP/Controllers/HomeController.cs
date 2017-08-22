@@ -99,6 +99,12 @@ namespace FBP.Controllers
             return matchupService.getLeagueNames().Select(a => new SelectListItem { Text = a, Value = a }).OrderBy(a => a.Text);
         }
 
+        [HttpGet("league-members-ajax")]
+        public IEnumerable<string> GetLeagueMembersAjax(int league_id)
+        {
+            return matchupService.getLeagueMemberNames(league_id).OrderBy(a => a);
+        }
+
         [HttpGet("matchups-ajax", Name = "GetMatchupsAjax")]
         public IEnumerable<Matchup> getMatchupsAjax(int week)
         {
@@ -131,16 +137,9 @@ namespace FBP.Controllers
         }
 
         [HttpGet("get-week-for-player", Name = "GetWeekForPlayer")]
-        public IActionResult GetWeekForPlayer(int week, string name, int league_id)
+        public Bracket GetWeekForPlayer(int week, string name, int league_id)
         {
-            //TODO: check that user is this league
-            FootballPoolViewModel vm = new FootballPoolViewModel();
-            vm.weeksInSeason = matchupService.getNumberOfWeeksInSeason(matchupService.getCurrentSeason());
-            week = week <= 0 ? 1 : week > vm.weeksInSeason ? vm.weeksInSeason : week;
-            vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
-            vm.teams = matchupService.getAllTeams();
-            vm.currentWeek = matchupService.getCurrentWeek();
-            return View("CompetitorView", vm);
+            return matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
         }
 
         public IActionResult About()

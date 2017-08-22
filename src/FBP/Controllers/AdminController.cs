@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using FBP.ViewModels;
 using FBP.Service;
 using Microsoft.AspNetCore.Authorization;
+using FBP.Services;
 
 namespace FBP.Controllers
 {
@@ -15,6 +16,9 @@ namespace FBP.Controllers
         [PropertyFromServices]
         public IMatchupService matchupService { get; set; }
 
+        [PropertyFromServices]
+        public IAdminService adminService { get; set; }
+
         public IActionResult Index()
         {
             return View("Admin");
@@ -23,14 +27,14 @@ namespace FBP.Controllers
         [HttpPost("admin/exec", Name = "ExecuteSql")]
         public IActionResult executeSql(AdminViewModel avm)
         {
-            int x = matchupService.executeSQL(avm.sqlCommand);
+            int x = adminService.executeSQL(avm.sqlCommand);
             return View("Admin");
         }
 
         [HttpPost("admin/execQuery", Name = "ExecuteQuery")]
         public IActionResult executeQuery(AdminViewModel avm)
         {
-            avm.results = matchupService.executeQuery(avm.sqlCommand);
+            avm.results = adminService.executeQuery(avm.sqlCommand);
             return View("Admin", avm);
         }
 
@@ -45,6 +49,13 @@ namespace FBP.Controllers
                 matchupService.loadSchedule(avm.season, avm.week);
             }
             
+            return View("Admin");
+        }
+
+        [HttpPost("admin/createLeague")]
+        public IActionResult createLeague(AdminViewModel avm)
+        {
+            adminService.createLeague(avm.leagueName, avm.leaguePassword);
             return View("Admin");
         }
     }

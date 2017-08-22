@@ -71,6 +71,7 @@ namespace FBP
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
             services.AddTransient<IMatchupService, MatchupServiceImpl>();
+            services.AddTransient<IAdminService, AdminServiceImpl>();
 
             services.AddHangfire(config =>
             {
@@ -105,7 +106,7 @@ namespace FBP
 
             app.UseHangfireServer();
 
-            RecurringJob.AddOrUpdate<IMatchupService>(r => r.updateMatchups(), Cron.Minutely);
+            RecurringJob.AddOrUpdate<IMatchupService>(r => r.updateMatchups(), Cron.MinuteInterval(5));
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
 
