@@ -143,7 +143,7 @@
             $scope.leagueMembers = $scope.getLeagueMembers($scope.bracket.league_id);
             $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
 
-            $scope.modalContentTemplate = '<div class="modal-top"><button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button ><br/>'' +
+            $scope.modalContentTemplate = '<div class="modal-top"><button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button ><br/>' +
                 '<select name="userSelect" ng-model="compBracket.user_name" ng-options="i for i in leagueMembers" ng-change="setCompBracket(compBracket.user_name, bracket.week + 1, bracket.league_id)" ></select>' +
                 '</div > ' +
                 '<table class="table table-sm table-hover">' +
