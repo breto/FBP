@@ -143,9 +143,8 @@
             $scope.leagueMembers = $scope.getLeagueMembers($scope.bracket.league_id);
             $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
 
-            $scope.modalContentTemplate = '<div class="modal-top">' +
+            $scope.modalContentTemplate = '<div class="modal-top"><button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button ><br/>'' +
                 '<select name="userSelect" ng-model="compBracket.user_name" ng-options="i for i in leagueMembers" ng-change="setCompBracket(compBracket.user_name, bracket.week + 1, bracket.league_id)" ></select>' +
-                '<button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button >' +
                 '</div > ' +
                 '<table class="table table-sm table-hover">' +
                 '    <thead>' +
@@ -179,7 +178,7 @@
                 '        </td > ' +
                 '        <td> ' +
                 '           <div ng-if="p.matchup.game_has_started" > {{p.weight}} </div>' +
-                '           <div ng-if="!p.matchup.game_has_started" > 0 </div>' +
+                '           <div ng-if="!p.matchup.game_has_started" > ~ </div>' +
                 '        </td > ' +
                 '    </tr>' +
                 '</table>'
@@ -205,20 +204,20 @@
                             $scope.setCompBracket = function (userName, week, leagueId) {
                                 $scope.$parent.compBracket = $scope.$parent.getBracket(userName, week, leagueId);
                             }
+
+                            $scope.getModalRowClass = function (userScore, compScore, matchStarted) {
+                                if (matchStarted && (userScore == compScore)) {
+                                    return "modal-row-match";
+                                } else {
+                                    return "modal-row-nonmatch";
+                                }
+
+                            }
                         }
                     ]
                 });
 
             };
-
-            $scope.getModalRowClass = function(userScore, compScore, matchStarted){
-                if (matchStarted && (userScore == compScore)) {
-                    return "modal-row-match";
-                } else {
-                    return "modal-row-nonmatch";
-                }
-
-            }
 
             $scope.saveBracket = function () {
 
@@ -305,7 +304,6 @@
                     $scope.errorsAndWarningsList = null;
                     $scope.availableWeights = $scope.getAvailableWeights();
                     $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
-                    console.log("number of games" + $scope.numberOfGames);
                 });
             }
 
@@ -441,7 +439,6 @@
                 var allSelects = $("select");
                 angular.forEach(allSelects, function (newBracketPicks, index, scope) {
                     var s = allSelects[index];
-                    var c = "";
                     if(s.name.indexOf('weight_list_') > -1){
                         angular.forEach(s.options, function(option, index, scope){
                             var optionValue = parseInt(option.label, 10);
