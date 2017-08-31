@@ -49,7 +49,7 @@
 		                    <td><span ng-class="getScoreCssClass(p, true)">{{p.matchup.home_team_score | zeroOutScore}}</span></td>
 		                    <td ng-class="getWeightCssClass(p)">    
 			                    <span ng-if="!bracket.allGamesStarted">
-				                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in numberOfGames" ng-disabled="p.matchup.game_has_started"  ng-class="getWeightSelectClass(p.weight)"></select>
+                                    <select name="weight_list_{{$index}}" ng-model="p.weight" ng-options="i for i in numberOfGames" ng-disabled="p.matchup.game_has_started" ng-change="getAvailableWeights()"  ng-class="getWeightSelectClass(p.weight)"></select>
 			                    </span>
 			                    <span ng-if="bracket.allGamesStarted" >
 				                    {{p.weight}}
@@ -121,7 +121,6 @@
                 for (var i = start; i <= end; i++) {
                     result.push(i);
                 }
-                $scope.testingNgOptions = $scope.testingNgOptions + 1;
                 return result;
             };
 
@@ -265,14 +264,6 @@
                     $scope.showAllComments = show_all;
                 });
             }
-
-            $scope.getArrayOfInts = function(start, end) {
-                var result = [];
-                for (var i = start; i <= end; i++) {
-                    result.push(i);
-                }
-                return result;
-            };
 
             $scope.weights = null;
 
@@ -462,7 +453,6 @@
             $scope.$watch(function (scope) {
                 return scope.bracket.picks;
             }, function (newValue, scope) {
-                var allSelects = $("select");
                 $scope.setClassOnWeightSelectOptions();
             }, true);
 
