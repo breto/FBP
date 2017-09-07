@@ -9,7 +9,7 @@
 <h2><i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getWeek(bracket.week - 1, bracket.league_id)"></i>
      &nbsp; Week  &nbsp;
     <select name="weekSelect" ng-model="bracket.week" ng-options="i for i in getArrayOfInts(1, @Model.weeksInSeason)" ng-change="getWeek(bracket.week, bracket.league_id)" ></select>
-    <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < @Model.weeksInSeason" ng-click="getWeek(bracket.week + 1,bracket.league_id)"></i>
+    <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < @Model.weeksInSeason" ng-click="getWeek(bracket.week + 1, bracket.league_id)"></i>
 </h2>
     <div class="container">
         <div class="row">
@@ -66,48 +66,10 @@
                     <div></div>
                 </form>
             </div>
-            <div class="col-md-4">
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Player</th>
-                            <th>Week Score</th>
-                            <th>Season Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="s in playerScores">
-                            <td>{{$index + 1}}</td>
-                            <!--<td><a href="/get-week-for-player?week={{bracket.week}}&name={{s.userName}}&league_id={{bracket.league_id}}">{{s.userName}}</a></td>-->
-                            <td><div ng-click="openModal(bracket.week,s.userName,bracket.league_id)">{{s.userName}}</div></td>
-                            <td>{{s.weekScore}}</td>
-                            <td>{{s.seasonScore}}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-4">
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>Comment</th>
-                        </tr>
-                    </thead>
-                        <tr ng-repeat="c in comments">
-                            <td>{{c.user_name}}</td>
-                            <td>{{c.comment}}</td>
-                        </tr>
-                </table>
-                <form name="commentForm">
-                    <textarea ng-model="commentToAdd" class="comment-textarea" ng-minlength="1" ng-maxlength="200"></textarea>
-                    <button class="btn btn-primary" ng-click="saveComment(bracket.league_id, showAllComments)">Add Comment</button>
-                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, showAllComments)">Refresh</button>
-                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, true)" ng-show="!showAllComments">All</button>
-                    <button class="btn btn-primary" ng-click="getComments(bracket.league_id, false)" ng-show="showAllComments">Recent</button>
-                </form>
-            </div>
+
+            <scoreboard username="{{bracket.user_name}}" week="{{bracket.week}}" leagueid="{{leagueid}}" refreshrate="60000"></scoreboard>
+            <comment-section leagueid="{{leagueid}}" comments="comments" refreshrate="60000"></comment-section>
+
         </div>
     </div>
 </div>
@@ -124,100 +86,21 @@
                 return result;
             };
 
-            $scope.getLeagueMembers = function (league_id) {
-                $http.get('/league-members-ajax?league_id=' + league_id).success(function (response) {
-                    $scope.leagueMembers = response;
+            $scope.updatePlayerScores = function (week, league_id) {
+                $http.get('/players-scores-ajax?week=' + week + '&league_id=' + league_id).success(function (response) {
+                    $scope.playerScores = response;
                 });
             }
-
+            
             $scope.viewmodel = @Html.Raw(JsonConvert.SerializeObject(Model));
             $scope.bracket = @Html.Raw(JsonConvert.SerializeObject(Model.bracket));
             $scope.errorsAndWarningsList = @Html.Raw(JsonConvert.SerializeObject(Model.errors));
-            $scope.comments = $scope.viewmodel.comments;
-            $scope.commentToAdd = null;
-            $scope.showAllComments = false;
             $scope.hasErrors = false;
             $scope.hasWarnings = false;
             $scope.saved = null;
-            $scope.leagueMembers = $scope.getLeagueMembers($scope.bracket.league_id);
             $scope.numberOfGames = $scope.getArrayOfInts(1, $scope.bracket.picks.length);
-
-            $scope.modalContentTemplate = '<div class="modal-top"><button class="btn btn-primary btn-right" type="button" ng-click="ok()">OK</button ><br/>' +
-                '<select name="userSelect" ng-model="compBracket.user_name" ng-options="i for i in leagueMembers" ng-change="setCompBracket(compBracket.user_name, bracket.week + 1, bracket.league_id)" ></select>' +
-                '</div > ' +
-                '<table class="table table-sm table-hover">' +
-                '    <thead>' +
-                '        <tr>' +
-                '            <th>Score</th>' +
-                '            <th>Visitor</th>' +
-                '            <th></th>' +
-                '            <th>Home</th>' +
-                '            <th>Score</th>' +
-                '            <th>Weight</th>' +
-                '        </tr>' +
-                '    </thead>' +
-                '    <tr ng-class="getModalRowClass(p.winner_id, bracket.picks[$index].winner_id, p.matchup.game_has_started)" ng-repeat="p in compBracket.picks">' +
-                '        <td><span ng-class="getScoreCssClass(p, false)">{{ p.matchup.visit_team_score | zeroOutScore }}</span></td>' +
-                '        <td>' +
-                '            <img src="/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" />' +
-                '               <div ng-if="p.matchup.game_has_started">' +
-                '               <input type="radio" ng-model="p.winner_id" ng-disabled="true" value="{{p.matchup.visit_team_id}}" />' +
-                '               </div>' +
-                '               <span><strong>{{ p.matchup.visitTeam.short_name }}</strong></span>' +
-                '       </td>' +
-                '            <td>vs</td>' +
-                '        <td>' +
-                '            <img src="/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" />' +
-                '            <strong>{{ p.matchup.homeTeam.short_name }}</strong>' +
-                '               <div ng-if="p.matchup.game_has_started">' +
-                '               <input type="radio" ng-model="p.winner_id" ng-disabled="true" value="{{p.matchup.home_team_id}}" /></td>' +
-                '           </div>' +
-                '        <td>' +
-                '           <div><span ng-class="getScoreCssClass(p, false)" > {{ p.matchup.home_team_score | zeroOutScore }}</span ></div>' +
-                '        </td > ' +
-                '        <td> ' +
-                '           <div ng-if="p.matchup.game_has_started" > {{p.weight}} </div>' +
-                '           <div ng-if="!p.matchup.game_has_started" > ~ </div>' +
-                '        </td > ' +
-                '    </tr>' +
-                '</table>'
-
-
-
-            $scope.openModal = function (week, userName, leagueId) {
-                $scope.compBracket = $scope.getBracket(userName, week, leagueId);
-                $scope.modalInstance = $uibModal.open({
-                    scope: $scope,
-                    template: $scope.modalContentTemplate,
-                    size: 'custom',
-                    controller: [
-                        '$scope', '$uibModalInstance', function ($scope, $uibModalInstance) {
-                            $scope.submitting = false;
-                            $scope.ok = function () {
-                                $uibModalInstance.dismiss('cancel');
-                            };
-
-                            $scope.clearParameterForm = function () {
-                            };
-
-                            $scope.setCompBracket = function (userName, week, leagueId) {
-                                $scope.$parent.compBracket = $scope.$parent.getBracket(userName, week, leagueId);
-                            }
-
-                            $scope.getModalRowClass = function (userScore, compScore, matchStarted) {
-                                if (matchStarted && (userScore == compScore)) {
-                                    return "modal-row-match";
-                                } else {
-                                    return "modal-row-nonmatch";
-                                }
-
-                            }
-                        }
-                    ]
-                });
-
-            };
-
+            $scope.leagueid = $scope.viewmodel.bracket.league_id;
+            
             $scope.saveBracket = function () {
 
                 $http.post('@Url.RouteUrl("SaveBracket")', $scope.bracket).success(function (response) {
@@ -228,7 +111,7 @@
                         $scope.errorsAndWarningsList = $scope.viewmodel.errors;
                         $scope.hasErrors = false;
                         $scope.hasWarnings = false;
-                    } else{
+                    } else {
                         $scope.errorsAndWarningsList = $scope.viewmodel.errors;
                         for(var i = 0; i < $scope.errorsAndWarningsList.length; i++){
                             var e = $scope.errorsAndWarningsList[i];
@@ -246,24 +129,6 @@
                     }
                 });
             };
-
-            $scope.saveComment = function (league_id, show_all) {
-                if($scope.commentToAdd)
-                var c = new Object();
-                c.league_id = league_id;
-                c.comment = $scope.commentToAdd;
-                $http.post('@Url.RouteUrl("SaveComment")', c).success(function (response) {
-                    $scope.commentToAdd = null;
-                    $scope.comments =  $scope.getComments(league_id, show_all);
-                });
-            }
-
-            $scope.getComments = function(league_id, show_all) {
-                $http.get('/get-comments?league_id=' + league_id + '&show_all= ' + show_all).success(function(response){
-                    $scope.comments = response;
-                    $scope.showAllComments = show_all;
-                });
-            }
 
             $scope.weights = null;
 
@@ -284,11 +149,10 @@
                 });
             }
 
-            $scope.getWeek = function(week, league_id){
+            $scope.getWeek = function(week, league_id) {
                 $http.get('/get-week-ajax?week=' + week + '&league_id=' + league_id).success(function(response){
                     $scope.viewmodel = response;
                     $scope.bracket = $scope.viewmodel.bracket;
-                    $scope.playerScores = $scope.updatePlayerScores(week, league_id);
                     $scope.hasErrors = false;
                     $scope.hasWarnings = false;
                     $scope.saved = null;
@@ -298,27 +162,8 @@
                 });
             }
 
-            $scope.getBracket = function (userName, week, leagueId) {
-                $http.get('/get-week-for-player?week=' + week + '&name=' + userName + '&league_id=' + leagueId).success(function (response) {
-                    $scope.compBracket = response;
-                });
-            }
+            $interval(function () { $scope.updateGameScores(); }, 60000);
 
-            $interval( function(){ $scope.updateGameScores(); $scope.updatePlayerScores($scope.bracket.week, $scope.bracket.league_id); $scope.updateComments(); }, 60000);
-
-            $scope.updateComments = function() {
-                $http.get('/get-comments?league_id=' + $scope.bracket.league_id + '&show_all= ' + $scope.showAllComments).success(function(response){
-                    $scope.comments = response;
-                });
-            }
-
-            $scope.updatePlayerScores = function(week, league_id) {
-                $http.get('/players-scores-ajax?week=' + week + '&league_id=' + league_id).success(function(response){
-                    $scope.playerScores = response;
-                });
-            }
-
-            $scope.playerScores = $scope.updatePlayerScores($scope.bracket.week, $scope.bracket.league_id);
             $scope.availableWeights = [];
 
             $scope.getAvailableWeights = function(){
@@ -365,7 +210,7 @@
                 }
             }
 
-            $scope.getWeightCssClass = function(p){
+            $scope.getWeightCssClass = function(p) {
                 if(p.matchup.status=='F' || p.matchup.status=='FO') {
                     if(p.winner_id == p.matchup.win_team_id){
                         return 'weight-final-winner';
@@ -381,7 +226,7 @@
                 }
             }
 
-            $scope.getScoreCssClass = function(p, isHome){
+            $scope.getScoreCssClass = function(p, isHome) {
                 if(p.matchup.status=='F' || p.matchup.status=='FO') {
                     if(isHome){
                         if(p.matchup.home_team_id == p.matchup.win_team_id){

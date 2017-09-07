@@ -44,10 +44,8 @@ namespace FBP.Controllers
             vm.weeksInSeason = matchupService.getNumberOfWeeksInSeason(matchupService.getCurrentSeason());
             week = week <= 0 ? 1 : week > vm.weeksInSeason ? vm.weeksInSeason : week;
             vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league.id);
-            vm.teams = matchupService.getAllTeams();
             vm.currentWeek = matchupService.getCurrentWeek();
             vm.comments = matchupService.getCommentsRecent(vm.bracket.league_id, 10);
-            vm.userLeague = league;
             return View("PicksView", vm);
         }
 
@@ -80,7 +78,7 @@ namespace FBP.Controllers
             return vm;
         }
 
-        [HttpPost("home/saveComment", Name = "SaveComment")]
+        [HttpPost("save-comment", Name = "SaveComment")]
         public void saveComment([FromBody] Comment comment)
         {
             comment.user_name = User.Identity.Name;
@@ -110,13 +108,7 @@ namespace FBP.Controllers
         {
             return matchupService.getMatchupsForWeek(matchupService.getCurrentSeason(), week);
         }
-
-        [HttpGet("comments-ajax", Name = "GetCommentsAjax")]
-        public IEnumerable<Comment> getComments(int league_id)
-        {
-            return matchupService.getCommentsRecent(league_id, -1);
-        }
-
+        
         [HttpGet("players-scores-ajax", Name = "GetPlayersScoresAjax")]
         public IEnumerable<UserScore> getPlayersScoresAjax(int week, int league_id)
         {
@@ -131,7 +123,6 @@ namespace FBP.Controllers
             vm.weeksInSeason = matchupService.getNumberOfWeeksInSeason(matchupService.getCurrentSeason());
             week = week <= 0 ? 1 : week > vm.weeksInSeason ? vm.weeksInSeason : week;
             vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
-            vm.teams = matchupService.getAllTeams();
             vm.currentWeek = matchupService.getCurrentWeek();
             return vm;
         }
