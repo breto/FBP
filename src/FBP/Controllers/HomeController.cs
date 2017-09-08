@@ -49,7 +49,7 @@ namespace FBP.Controllers
             return View("PicksView", vm);
         }
 
-        [HttpPost("home/saveBracket", Name = "SaveBracket")]
+        [HttpPost("save-bracket", Name = "SaveBracket")]
         public FootballPoolViewModel saveBracket([FromBody] Bracket bracket)
         {
             List<Alert> errors = matchupService.validateBracket(bracket).ToList();
@@ -115,17 +115,17 @@ namespace FBP.Controllers
             return matchupService.getLeaguePlayersScores(league_id, matchupService.getCurrentSeason(), week);
         }
 
-        [HttpGet("get-week-ajax", Name = "GetWeekAjax")]
-        public FootballPoolViewModel getWeekAjax(int week, int league_id)
-        {
-            FootballPoolViewModel vm = new FootballPoolViewModel();
-            string name = User.Identity.Name;
-            vm.weeksInSeason = matchupService.getNumberOfWeeksInSeason(matchupService.getCurrentSeason());
-            week = week <= 0 ? 1 : week > vm.weeksInSeason ? vm.weeksInSeason : week;
-            vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
-            vm.currentWeek = matchupService.getCurrentWeek();
-            return vm;
-        }
+        //[HttpGet("get-week-ajax", Name = "GetWeekAjax")]
+        //public Bracket getWeekAjax(int week, int league_id)
+        //{
+        //    //FootballPoolViewModel vm = new FootballPoolViewModel();
+        //    //string name = User.Identity.Name;
+        //    //vm.weeksInSeason = matchupService.getNumberOfWeeksInSeason(matchupService.getCurrentSeason());
+        //    //week = week <= 0 ? 1 : week > vm.weeksInSeason ? vm.weeksInSeason : week;
+        //    //vm.bracket = matchupService.getUsersBracketByWeek(name, matchupService.getCurrentSeason(), week, league_id);
+        //    //vm.currentWeek = matchupService.getCurrentWeek();
+        //    return matchupService.getUsersBracketByWeek(User.Identity.Name, matchupService.getCurrentSeason(), week, league_id);
+        //}
 
         [HttpGet("get-week-for-player", Name = "GetWeekForPlayer")]
         public Bracket GetWeekForPlayer(int week, string name, int league_id)
