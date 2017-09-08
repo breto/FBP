@@ -160,6 +160,7 @@ namespace FBP.Dao.Sql
 
         public void joinLeague(string leagueName, string userName)
         {
+            //TODO prevent person from joining league twice
             League l = getLeagueByLeagueName(leagueName);
             db.Create<LeagueMember>(new LeagueMember(l.id, userName));
         }

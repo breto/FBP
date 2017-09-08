@@ -3,7 +3,7 @@
 
     app
 
-        .directive('commentSection', function ($http) {
+        .directive('commentSection', function ($http, $interval) {
             return {
                 scope: {
                     leagueid: '@',
@@ -62,7 +62,7 @@
 
                 scope.comments = scope.getComments(scope.showAllComments);
 
-                $interval(function () { $scope.updateComments(); }, refreshrate);
+                $interval(function () { scope.updateComments(); }, scope.refreshrate);
             };
         })
 
@@ -180,7 +180,6 @@
 
                                 $scope.setCompBracket = function (username, week, leagueid) {
                                     $scope.$parent.compBracket = $scope.$parent.getBracket(username, week, leagueid);
-                                    console.log()
                                 }
 
                                 $scope.getModalRowClass = function (userScore, compScore, matchStarted) {
@@ -190,6 +189,30 @@
                                         return "modal-row-nonmatch";
                                     }
                                 }
+                                //this is duplicated
+                                $scope.getScoreCssClass = function (p, isHome) {
+                                    if (p.matchup.status == 'F' || p.matchup.status == 'FO') {
+                                        if (isHome) {
+                                            if (p.matchup.home_team_id == p.matchup.win_team_id) {
+                                                return 'score-final-winner';
+                                            } else {
+                                                return 'score-final-loser';
+                                            }
+                                        } else {
+                                            if (p.matchup.visit_team_id == p.matchup.win_team_id) {
+                                                return 'score-final-winner';
+                                            } else {
+                                                return 'score-final-loser';
+                                            }
+                                        }
+                                    } else {
+                                        if (!p.matchup.game_has_started) {
+                                            return 'score-pending';
+                                        } else {
+                                            return 'score-active';
+                                        }
+                                    }
+                                }
                             }
                         ]
                     });
@@ -197,5 +220,13 @@
             };
         })
 
-
+    .filter('zeroOutScore', function () {
+        return function (input) {
+            if (input < 0) {
+                return 0;
+            } else {
+                return input;
+            }
+        }
+    });
 })();
