@@ -167,7 +167,7 @@ namespace FBP.Dao.Sql
 
         public int getCurrentWeek()
         {
-            return db.GetFirst<int>("select min(week_number) from matchups where status = 'P'", new { });
+            return db.GetFirst<int>("select min(week_number) from matchups where status = 'P' and season = (select max(season) from matchups)", new { });
         }
 
         public IEnumerable<Matchup> getActiveMatchups(int week)

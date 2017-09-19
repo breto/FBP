@@ -14,7 +14,7 @@
                 link: link,
                 template:
                 '<h2>' +
-                '   <i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng- click="getBracket(username, bracket.week - 1, leagueid)"></i> &nbsp; Week  &nbsp; ' +
+                '   <i class="fa fa-arrow-circle-left" aria-hidden="true" ng-show="bracket.week > 1" ng-click="getBracket(username, bracket.week - 1, leagueid)"></i> &nbsp; Week  &nbsp; ' +
                 '   <select name= "weekSelect" ng-model="bracket.week" ng-options="i for i in getArrayOfInts(1, weeksinseason)" ng-change="getBracket(username, bracket.week, leagueid)" ></select >' +
                 '   <i class="fa fa-arrow-circle-right" aria-hidden="true" ng-show="bracket.week < weeksinseason" ng-click="getBracket(username, bracket.week + 1, leagueid)"></i>' +
                 '</h2 >' +
@@ -114,33 +114,6 @@
                         }
                     }
                     return scope.availableWeights;
-                }
-
-                scope.setClassOnWeightSelectOptions = function () {
-                    //iterates thru all the selects and then all the options on those selects and
-                    //compares them to the avaliableWeights list to set the css class on the options
-                    //this is probably not a great way to do it, but yeah, it seems to work.
-                    var allSelects = $("select");
-                    angular.forEach(allSelects, function (newBracketPicks, index, scope) {
-                        var s = allSelects[index];
-                        if (s.name.indexOf('weight_list_') > -1) {
-                            angular.forEach(s.options, function (option, index, scope) {
-                                var optionValue = parseInt(option.label, 10);
-                                if (option.label != '' && optionValue != NaN) {
-                                    var newClassList = [];
-                                    if ($scope.availableWeights[optionValue - 1].unused == 0) {
-                                        newClassList.push("color-used");
-                                    } else if ($scope.availableWeights[optionValue - 1].unused == 1) {
-                                        newClassList.push("color-unused");
-                                    }
-                                    else {
-                                        newClassList.push("color-used-multi");
-                                    }
-                                    option.classList = newClassList;
-                                }
-                            });
-                        }
-                    });
                 };
                 
                 scope.getBracket = function (username, week, leagueid) {
@@ -152,7 +125,6 @@
                         scope.errorsAndWarningsList = null;
                         scope.availableWeights = scope.getAvailableWeights();
                         scope.numberOfGames = scope.getArrayOfInts(1, scope.bracket.picks.length);
-                        console.log(scope.numberOfGames);
                     });
                 }
 
@@ -227,18 +199,58 @@
                     return date;
                 }
 
+                scope.getWeightSelectClass = function (w) {
+                    var count = 0;
+                    for (var i = 0; i < scope.bracket.picks.length; i++) {
+                        if (scope.bracket.picks[i].weight == w) {
+                            count++;
+                        }
+                    }
+                    if (count > 1) {
+                        return "select-multi";
+                    } else {
+                        return "selectpicker";
+                    }
+                }
+
+                scope.resetWeightClasses = function () {
+                    scope.getAvailableWeights();
+                    var allSelects = $("select");
+                    angular.forEach(allSelects, function (newBracketPicks, index) {
+                        var s = allSelects[index];
+                        if (s.name.indexOf('weight_list_') > -1) {
+                            angular.forEach(s.options, function (option, index) {
+                                var optionValue = parseInt(option.label, 10);
+                                if (option.label != '' && optionValue != NaN) {
+                                    var newClassList = [];
+                                    if (scope.availableWeights[optionValue - 1].unused == 0) {
+                                        newClassList.push("color-used");
+                                    } else if (scope.availableWeights[optionValue - 1].unused == 1) {
+                                        newClassList.push("color-unused");
+                                    }
+                                    else {
+                                        newClassList.push("color-used-multi");
+                                    }
+                                    option.classList = newClassList;
+                                }
+                            });
+                        }
+                    });
+                };
+
                 //initialize bracket
+                scope.bracket = { picks: {} };
                 scope.getBracket(scope.username, scope.week, scope.leagueid);
 
                 scope.$watch(function (scope) {
                     return scope.bracket.picks;
-                }, function (newValue, scope) {
-                    scope.setClassOnWeightSelectOptions();
+                }, function (newValue, oldValue, scope) {
+                    scope.resetWeightClasses();
                 }, true);
 
                 angular.element(document).ready(function () {
                     //runs when document is ready to set the css class on the weight select options
-                    scope.setClassOnWeightSelectOptions();
+                    scope.resetWeightClasses();
                 });
 
             }
@@ -359,7 +371,7 @@
                     });
                 }
 
-                $interval(function () { scope.getPlayerScores(scope.week, scope.leagueid) }, scope.refreshrate);
+                $interval(function () { scope.getPlayerScores(scope.leagueid, scope.week) }, scope.refreshrate);
 
                 scope.getBracket(scope.username, scope.week, scope.leagueid);
                 scope.scores = scope.getPlayerScores(scope.leagueid, scope.week);
