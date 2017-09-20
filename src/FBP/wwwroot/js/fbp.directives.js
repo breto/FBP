@@ -46,13 +46,13 @@
                 '                           <span ng-class="getScoreCssClass(p, false)">{{ p.matchup.visit_team_score | zeroOutScore }}</span>' +
                 '                        </td>' +
                 '                        <td>' +
-                '                            <img src="/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.visitTeam}})"  />' +
+                '                            <img src="/images/team_logos/{{p.matchup.visitTeam.short_name}}.png" alt="{{p.matchup.visitTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.visitTeam}})"  popover-trigger="\'mouseenter\'"/>' +
                 '                            <input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.game_has_started" value="{{p.matchup.visit_team_id}}" />' +
                 '                            <span><strong>{{ p.matchup.visitTeam.short_name }}</strong></span>' +
                 '                        </td>' +
-                '                        <td></td>' +
+                '                        <td><span uib-popover-html="getGameDatePopoverHtml(\'{{ p.matchup.game_date | date:\'MM/dd/yyyy h:mma\' }}\')" popover-trigger="\'mouseenter\'">vs</span></td>' +
                 '                        <td>' +
-                '                            <img src="/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.homeTeam}})"  />' +
+                '                            <img src="/images/team_logos/{{p.matchup.homeTeam.short_name}}.png" alt="{{p.matchup.homeTeam.name}}" class="img-responsive" uib-popover-html="getTeamRecordPopoverHtml({{p.matchup.homeTeam}})" popover-trigger="\'mouseenter\'" />' +
                 '                            <strong>{{ p.matchup.homeTeam.short_name }}</strong>' +
                 '                            <input type="radio" ng-model="p.winner_id" ng-disabled="p.matchup.game_has_started" value="{{p.matchup.home_team_id}}" />' +
                 '                        </td>' +
